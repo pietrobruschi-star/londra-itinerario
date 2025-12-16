@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>Viaggio a Londra – NUOVO ITINERARIO + PERCORSI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <style>
+    body { margin: 0; font-family: Arial, Helvetica, sans-serif; display: grid; grid-template-columns: 480px 1fr; height: 100vh; overflow: hidden; }
+    #sidebar { overflow-y: auto; padding: 16px; background: #f7f7f7; border-right: 1px solid #ddd; }
+    #map { height: 100%; }
+    h2 { margin-top: 0; padding-bottom: 5px; }
+    h3 { color: #0056b3; cursor: pointer; transition: background-color 0.2s; padding: 5px; border-radius: 4px; }
+    h3:hover { background-color: rgba(0,86,179,0.1); }
+    .day { border-left: 5px solid; padding-left: 10px; margin-bottom: 25px; }
+    .day-Venerdi { border-left-color: #0056b3; } 
+    .day-Sabato { border-left-color: #e65100; } 
+    .day-Domenica { border-left-color: #2e7d32; } 
+    .day-Lunedi { border-left-color: #6a1b9a; } 
+    .stop { font-size: 0.9rem; margin-bottom: 8px; padding: 5px; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; display: flex; gap: 10px; align-items: flex-start;}
+    .stop:hover { background-color: #e0e0e0; }
+    .num { font-weight: bold; width: 15px; text-align: right; }
+    .details { flex-grow: 1; }
+    .transport { font-size: 0.8rem; color: #555; font-style: italic; }
+    .rain-option { display: none; color: #c0392b; font-weight: bold;}
+    #weather-selector button { border: 1px solid #0056b3; padding: 8px 12px; margin: 2px; border-radius: 4px; cursor: pointer; }
+    #weather-selector button.active { background-color: #0056b3; color: white; }
+    #nightlife-planner { margin-top: 20px; padding: 10px; background: #fff; border-radius: 5px; }
+    #nightlife-planner h4 { color: #8e44ad; margin-top: 0; border-bottom: 1px solid #ccc; padding-bottom: 5px; }
+    #nightlife-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    #nightlife-table th, #nightlife-table td { border: 1px solid #eee; padding: 6px; text-align: left; }
+    #nightlife-table th { background-color: #f0f0f0; }
+    .custom-icon { background-color: transparent !important; border: none !important; }
+    .icon-club { color: #8e44ad; font-size: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+    .icon-bar { color: #e67e22; font-size: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+    .icon-hotel { color: #34495e; font-size: 20px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+    #full-route-btn {
+      position: fixed; top: 10px; right: 10px; z-index: 1000; background: linear-gradient(135deg, #0056b3, #007cba); 
+      color: white; border: none; padding: 10px 15px; border-radius: 25px; cursor: pointer; font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0,86,179,0.3); transition: all 0.3s;
+    }
+    #full-route-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,86,179,0.4); }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <h2>🇬🇧 Londra: NUOVO ITINERARIO</h2>
+    
+    <div id="weather-selector">
+        <p>Seleziona l'opzione in base al meteo previsto:</p>
+        <button id="btn-sole" class="active">☀️ Sole / Tempo Bello</button>
+        <button id="btn-pioggia">🌧️ Pioggia / Freddo</button>
+    </div>
+
+    <div class="day day-Venerdi" data-day="Venerdì">
+      <h3>🗓️ Venerdì 19: East End Vibes</h3>
+      <div class="stop" data-coords="51.5246, -0.0797"><span class="num">1.</span><div class="details"><span class="time">14:00</span> – Check-in ibis Shoreditch <span class="transport">(Stansted Express + Piedi)</span></div></div>
+      <div class="stop" data-coords="51.5194, -0.0727"><span class="num">2.</span><div class="details"><span class="time">14:30</span> – Old Spitalfields Market <span class="transport">(🚶 5 min)</span></div></div>
+      <div class="stop" data-coords="51.5115, -0.0837"><span class="num">3.</span><div class="details"><span class="time">16:00</span> – Sky Garden / Garden at 120 <span class="transport">(🚶 10-15 min)</span></div></div>
+      <div class="stop" data-coords="51.5081, -0.0759"><span class="num">4.</span><div class="details"><span class="time">18:00</span> – Tower of London & Tower Bridge <span class="transport">(🚶 10 min)</span></div></div>
+    </div>
+
+    <div class="day day-Sabato" data-day="Sabato">
+      <h3>🗓️ Sabato 20: Royal & The Arts</h3>
+      <div class="stop" data-coords="51.5034, -0.1384"><span class="num">1.</span><div class="details"><span class="time">09:30</span> – Buckingham Palace & St. James's Park <span class="transport">(🚇 District Line 20 min)</span></div></div>
+      <div class="stop" data-coords="51.4995, -0.1270"><span class="num">2.</span><div class="details"><span class="time">11:00</span> – Westminster Abbey & Big Ben <span class="transport">(🚶 10 min)</span></div></div>
+      <div class="stop" data-coords="51.5033, -0.1196"><span class="num">3.</span><div class="details"><span class="time">12:30</span> – London Eye (Foto) <span class="transport">(🚶 Attraverso ponte)</span></div></div>
+      <div class="stop" data-coords="51.5074, -0.1280"><span class="num">4.</span><div class="details"><span class="time">15:30</span> – National Gallery ★PRENOTATO★ <span class="transport">(🚌 10 min)</span></div></div>
+      <div class="stop" data-coords="51.5101, -0.1360"><span class="num">5.</span><div class="details"><span class="time">17:30</span> – Piccadilly Circus & Regent Street <span class="transport">(🚶 5-10 min)</span></div></div>
+    </div>
+
+    <div class="day day-Domenica" data-day="Domenica">
+      <h3>🗓️ Domenica 21: History & The River</h3>
+      <div class="stop" data-coords="51.5194, -0.1270"><span class="num">1.</span><div class="details"><span class="time">09:30</span> – British Museum <span class="transport">(🚇 Central Line 10 min)</span></div></div>
+      <div class="stop" data-coords="51.5138, -0.0984"><span class="num">2.</span><div class="details"><span class="time">12:30</span> – St. Paul's Cathedral <span class="transport">(🚌 15 min)</span></div></div>
+      <div class="stop" data-coords="51.5050, -0.0955"><span class="num">3.</span><div class="details"><span class="time">13:30</span> – Borough Market (Pranzo) <span class="transport">(🚶 Millennium Bridge)</span></div></div>
+      <div class="stop" data-coords="51.5074, -0.1196"><span class="num">4.</span><div class="details"><span class="time">15:00</span> – Tate Modern <span class="transport">(🚶 2 min)</span></div></div>
+      <div class="stop" data-coords="51.5100, -0.0900"><span class="num">5.</span><div class="details"><span class="time">16:30</span> – Queen's Walk → Tower Bridge <span class="transport">(🚶 Lungo Tamigi)</span></div></div>
+    </div>
+    
+    <div class="day day-Lunedi" data-day="Lunedì">
+      <h3>🗓️ Lunedì 22: Rientro</h3>
+      <div class="stop" data-coords="51.5235, -0.0740"><span class="num">1.</span><div class="details"><span class="time">09:30</span> – Colazione Brick Lane (Beigel Bake) <span class="transport">(🚶 Vicino hotel)</span></div></div>
+      <div class="stop" data-coords="51.5179, -0.0811"><span class="num">2.</span><div class="details"><span class="time">11:30</span> – Stansted Express (Liverpool St.) <span class="transport">(🚶 10 min)</span></div></div>
+    </div>
+    
+    <div id="nightlife-planner">
+        <h4><i class="fa-solid fa-moon"></i> Vita Notturna da ibis Shoreditch</h4>
+        <table id="nightlife-table">
+            <thead><tr><th>Locale</th><th>Zona</th><th>Logistica</th><th>Valutazione</th></tr></thead>
+            <tbody>
+                <tr><td colspan="4" style="background-color: #f3e5f5; font-weight: bold;">🟣 CLUB</td></tr>
+                <tr><td>XOYO</td><td>Shoreditch</td><td>🟢 3 min piedi</td><td>Top Pick</td></tr>
+                <tr><td>Village Underground</td><td>Shoreditch</td><td>🟢 10 min piedi</td><td>Alternativa Cargo</td></tr>
+                <tr><td>KOKO</td><td>Camden</td><td>🟡 20 min taxi</td><td>Fattibile</td></tr>
+                <tr><td colspan="4" style="background-color: #fff3e0; font-weight: bold;">🍸 BARS</td></tr>
+                <tr><td>Cahoots Underground</td><td>Soho</td><td>🟡 20 min metro</td><td>Must Do ★</td></tr>
+                <tr><td>Fitz's Bar</td><td>Bloomsbury</td><td>🟡 15 min metro</td><td>Classy</td></tr>
+            </tbody>
+        </table>
+    </div>
+  </div>
+
+  <div id="map"></div>
+  <button id="full-route-btn" title="Percorso completo">🧭 Percorso Completo</button>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <script>
+    const map = L.map('map').setView([51.515, -0.12], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    const touristMarkers = L.featureGroup(), clubMarkers = L.featureGroup(), barMarkers = L.featureGroup();
+    
+    const createFAIcon = (className, iconHtml) => L.divIcon({
+        className: 'custom-icon ' + className, html: `<i class="${iconHtml}" style="font-size: 20px;"></i>`,
+        iconSize: [30, 30], iconAnchor: [15, 30]
+    });
+    
+    const clubIcon = createFAIcon('icon-club', 'fa-solid fa-volume-high');
+    const barIcon = createFAIcon('icon-bar', 'fa-solid fa-martini-glass');
+    const hotelIcon = createFAIcon('icon-hotel', 'fa-solid fa-bed');
+
+    const createDailyIcon = (color) => L.divIcon({
+        html: `<div style="background-color:${color};width:12px;height:12px;border-radius:50%;border:3px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>`,
+        iconSize: [24, 24], iconAnchor: [12, 12]
+    });
+
+    const colors = {'Venerdì': '#0056b3', 'Sabato': '#e65100', 'Domenica': '#2e7d32', 'Lunedì': '#6a1b9a'};
+
+    // ✅ NUOVI STOP ESATTAMENTE COME HAI DESCRITTO
+    const stops = [
+      { name: 'ibis Shoreditch', coords: [51.5246, -0.0797], day: 'Venerdì', color: colors['Venerdì'], specialIcon: hotelIcon, group: touristMarkers },
+      { name: 'Old Spitalfields Market', coords: [51.5194, -0.0727], day: 'Venerdì', color: colors['Venerdì'], group: touristMarkers },
+      { name: 'Sky Garden', coords: [51.5115, -0.0837], day: 'Venerdì', color: colors['Venerdì'], group: touristMarkers },
+      { name: 'Tower of London', coords: [51.5081, -0.0759], day: 'Venerdì', color: colors['Venerdì'], group: touristMarkers },
+      
+      { name: 'Buckingham Palace', coords: [51.5034, -0.1384], day: 'Sabato', color: colors['Sabato'], group: touristMarkers },
+      { name: 'Westminster Abbey & Big Ben', coords: [51.4995, -0.1270], day: 'Sabato', color: colors['Sabato'], group: touristMarkers },
+      { name: 'London Eye', coords: [51.5033, -0.1196], day: 'Sabato', color: colors['Sabato'], group: touristMarkers },
+      { name: 'National Gallery ★', coords: [51.5074, -0.1280], day: 'Sabato', color: colors['Sabato'], group: touristMarkers },
+      { name: 'Piccadilly Circus', coords: [51.5101, -0.1360], day: 'Sabato', color: colors['Sabato'], group: touristMarkers },
+      
+      { name: 'British Museum', coords: [51.5194, -0.1270], day: 'Domenica', color: colors['Domenica'], group: touristMarkers },
+      { name: 'St. Paul\'s Cathedral', coords: [51.5138, -0.0984], day: 'Domenica', color: colors['Domenica'], group: touristMarkers },
+      { name: 'Borough Market', coords: [51.5050, -0.0955], day: 'Domenica', color: colors['Domenica'], group: touristMarkers },
+      { name: 'Tate Modern', coords: [51.5074, -0.1196], day: 'Domenica', color: colors['Domenica'], group: touristMarkers },
+      { name: 'Queen\'s Walk → Tower Bridge', coords: [51.5100, -0.0900], day: 'Domenica', color: colors['Domenica'], group: touristMarkers },
+      
+      { name: 'Brick Lane Breakfast', coords: [51.5235, -0.0740], day: 'Lunedì', color: colors['Lunedì'], group: touristMarkers },
+      { name: 'Stansted Express', coords: [51.5179, -0.0811], day: 'Lunedì', color: colors['Lunedì'], group: touristMarkers }
+    ];
+
+    stops.forEach(stop => {
+      const icon = stop.specialIcon || createDailyIcon(stop.color);
+      L.marker(stop.coords, { icon })
+        .bindPopup(`<b>${stop.name}</b><br><span style="color:${stop.color}">Giorno: ${stop.day}</span>`)
+        .addTo(stop.group);
+    });
+
+    // Nightlife aggiornato
+    const nightlife = [
+      { name: 'XOYO', coords: [51.5247, -0.0789], icon: clubIcon, group: clubMarkers },
+      { name: 'Village Underground', coords: [51.5240, -0.0740], icon: clubIcon, group: clubMarkers },
+      { name: 'KOKO', coords: [51.5385, -0.1423], icon: clubIcon, group: clubMarkers },
+      { name: 'Cahoots Underground', coords: [51.5130, -0.1319], icon: barIcon, group: barMarkers },
+      { name: "Fitz's Bar", coords: [51.5218, -0.1264], icon: barIcon, group: barMarkers }
+    ];
+    
+    nightlife.forEach(spot => {
+      L.marker(spot.coords, { icon: spot.icon })
+        .bindPopup(spot.name)
+        .addTo(spot.group);
+    });
+
+    touristMarkers.addTo(map); clubMarkers.addTo(map); barMarkers.addTo(map);
+    L.control.layers(null, {'🧭 Itinerario': touristMarkers, '🎵 Club': clubMarkers, '🍸 Bar': barMarkers}).addTo(map);
+
+    // PERCORSI AUTOMATICI DAI NUOVI STOP
+    let currentRoute = null;
+    
+    // Crea percorsi automaticamente dalla sidebar HTML
+    const stopsByDay = {};
+    document.querySelectorAll('.day').forEach(dayDiv => {
+      const dayName = dayDiv.getAttribute('data-day');
+      stopsByDay[dayName] = [];
+      dayDiv.querySelectorAll('.stop[data-coords]').forEach(stop => {
+        const [lat, lng] = stop.getAttribute('data-coords').split(',').map(parseFloat);
+        stopsByDay[dayName].push([lat, lng]);
+      });
+    });
+
+    function createRoute(waypoints, color) {
+      if (currentRoute) map.removeControl(currentRoute);
+      currentRoute = L.Routing.control({
+        waypoints: waypoints.map(w => L.latLng(w[0], w[1])),
+        show: false,
+        lineOptions: { styles: [{color, opacity: 0.8, weight: 6}] },
+        createMarker: () => null,
+        router: L.Routing.osrmv1({ profile: 'foot' })
+      }).addTo(map);
+      map.fitBounds(L.latLngBounds(waypoints.map(w => L.latLng(w[0], w[1]))));
+    }
+
+    document.querySelectorAll('.day').forEach(day => {
+      day.addEventListener('click', e => {
+        if (e.target.closest('.stop')) return;
+        const dayName = day.dataset.day;
+        createRoute(stopsByDay[dayName], colors[dayName]);
+      });
+    });
+
+    document.getElementById('full-route-btn').onclick = () => {
+      const allWaypoints = [];
+      Object.values(stopsByDay).forEach(dayWaypoints => allWaypoints.push(...dayWaypoints));
+      createRoute(allWaypoints, '#ff6b35');
+    };
+
+    document.querySelectorAll('.stop[data-coords]').forEach(stop => {
+      stop.onclick = () => {
+        const [lat, lng] = stop.dataset.coords.split(',').map(parseFloat);
+        map.flyTo([lat, lng], 16);
+      };
+    });
+
+    // Meteo
+    document.getElementById('btn-sole').onclick = () => {
+      document.querySelectorAll('.rain-option').forEach(el => el.style.display = 'none');
+      document.getElementById('btn-sole').classList.add('active');
+      document.getElementById('btn-pioggia').classList.remove('active');
+    };
+    document.getElementById('btn-pioggia').onclick = () => {
+      document.querySelectorAll('.rain-option').forEach(el => el.style.display = 'block');
+      document.getElementById('btn-pioggia').classList.add('active');
+      document.getElementById('btn-sole').classList.remove('active');
+    };
+  </script>
+</body>
+</html>
